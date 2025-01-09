@@ -16,19 +16,23 @@ int main() {
     int row, col;
     getmaxyx(stdscr, row, col);
     move(row/2, col/2);
-    printw("A game");
+    printw("Want to play?");
 
-    //struct status game1 = {0};
-    int key_pressed = getch();
-    if (key_pressed != 113) {
-        /*** play_game(): ***/
-        clear();
-        move(row/2, col/2);
-        printw("Loading...");
-        refresh();
-        getch();
+    int key_pressed;
+    while (1) {
+        key_pressed = getch();
+        if (key_pressed == 113) break;
+        if (key_pressed == 121) {
+                /*** play_game(): ***/
+            clear();
+            move(row/2, col/2);
+            printw("Loading...");
+            refresh();
+            getch();
+        }
+
     }
-            
+      
         /*** finish_game(): ***/
     endwin();
     return 0;
