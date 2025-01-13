@@ -44,3 +44,4 @@ run:
 
 clean:
 	$(DEL_FILE) bin/*
+	$(DEL_FILE) *.out
