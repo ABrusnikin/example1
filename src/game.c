@@ -13,6 +13,8 @@
 #define N 12
 #define M 23
 
+#define WALL 88
+
 struct status
 {
     bool want_to_quit;
@@ -20,6 +22,10 @@ struct status
     int max_x;
     int max_y;
     char** map;
+    int x_map;
+    int y_map;
+    int me_x;
+    int me_y;
 };
 
 void init_screen();
@@ -33,11 +39,15 @@ void clear_map(int n,int m, char** arr);
 void print_map(int n,int m, char** arr);
 void free_map(int n,char** arr);
 
+void display_map(struct status* Game);
+void move_me(int dx, int dy, struct status* Game);
+bool can_move(int dx, int dy, struct status* Game);
+
 int main() {
     
     init_screen();
 
-    struct status Game = {0,1,0,0,NULL};
+    struct status Game = {0,1,0,0,NULL,0,0,0,0};
     getmaxyx(stdscr, Game.max_x, Game.max_y);
     
                 /*** start_screen(): ***/
@@ -50,7 +60,8 @@ int main() {
                 /*** play_game(): ***/
 
             game_loop(&Game);
-            getch();
+            Game.want_to_quit = 0;
+            // getch();
 
         }
     }
@@ -97,6 +108,35 @@ void game_loop(struct status* Game) {
     int err = download_map(Game);
 
     /*** a game ***/
+    clear();
+    display_map(Game);
+    refresh();
+
+    int key;
+    while (!Game->want_to_quit) {
+        key = getch();
+        switch (key)
+        {
+        case KEY_Q:
+            Game->want_to_quit = 1;
+            break;
+        case KEY_A:
+            move_me(0,-1,Game);
+            break;
+        case KEY_S:
+            move_me(1,0,Game);
+            break;
+        case KEY_D:
+            move_me(0,1,Game);
+            break;
+        case KEY_W:
+            move_me(-1,0,Game);
+            break;
+        
+        default:
+            break;
+        }
+    }
 
     if (!err) free_map(N,Game->map); 
 }
@@ -120,9 +160,14 @@ int download_map(struct status* Game) {
         
             if (temp_ch == '\n' || temp_ch == EOF) break;
             Game->map[i][j] = temp_ch;
+            if (temp_ch == '@') {
+                Game->me_x = i;
+                Game->me_y = j;
+            }
         }
         if (temp_ch == EOF) break;
     }
+
     fclose(file);
     return 0;
 }
@@ -149,4 +194,31 @@ void free_map(int n, char** arr) {
         free(arr[i]);
     }
     free(arr);
+}
+
+void display_map(struct status* Game) {
+    for (int i =0; i<N; i++) {
+        move(i,0);
+        for (int j=0; j<M; j++) {
+            addch(Game->map[i][j]);
+        }
+    }
+}
+
+void move_me(int dx, int dy, struct status* Game) {
+    if (can_move(dx,dy,Game)) {
+        clear();
+        Game->map[Game->me_x][Game->me_y] = ' ';
+        Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
+        Game->me_x += dx;
+        Game->me_y += dy;
+        display_map(Game);
+        refresh();
+    }
+}
+
+bool can_move(int dx, int dy, struct status* Game) {
+    bool can = false;
+    if (Game->map[Game->me_x+dx][Game->me_y+dy] != WALL) can = true;
+    return can;
 }
