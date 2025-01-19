@@ -14,6 +14,7 @@
 #define M 23
 
 #define WALL 88
+#define BOX 42
 
 struct status
 {
@@ -42,6 +43,9 @@ void free_map(int n,char** arr);
 void display_map(struct status* Game);
 void move_me(int dx, int dy, struct status* Game);
 bool can_move(int dx, int dy, struct status* Game);
+void free_move(int dx, int dy, struct status* Game);
+bool can_push(int dx, int dy, struct status* Game);
+void push_box(int dx, int dy, struct status* Game);
 
 int main() {
     
@@ -58,11 +62,9 @@ int main() {
                 /*** level_screen(): ***/
             load_level_screen(&Game);
                 /*** play_game(): ***/
-
             game_loop(&Game);
             Game.want_to_quit = 0;
             // getch();
-
         }
     }
                 /*** finish_game(): ***/
@@ -206,19 +208,41 @@ void display_map(struct status* Game) {
 }
 
 void move_me(int dx, int dy, struct status* Game) {
-    if (can_move(dx,dy,Game)) {
-        clear();
-        Game->map[Game->me_x][Game->me_y] = ' ';
-        Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
-        Game->me_x += dx;
-        Game->me_y += dy;
-        display_map(Game);
-        refresh();
-    }
+    if (can_move(dx,dy,Game)) free_move(dx,dy,Game);
+        else 
+            if (can_push(dx,dy,Game)) push_box(dx,dy,Game);
 }
 
 bool can_move(int dx, int dy, struct status* Game) {
     bool can = false;
-    if (Game->map[Game->me_x+dx][Game->me_y+dy] != WALL) can = true;
+    if (Game->map[Game->me_x+dx][Game->me_y+dy] != WALL && Game->map[Game->me_x+dx][Game->me_y+dy] != BOX) can = true;
     return can;
+}
+
+void free_move(int dx, int dy, struct status* Game) {
+    clear();
+    Game->map[Game->me_x][Game->me_y] = ' ';
+    Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
+    Game->me_x += dx;
+    Game->me_y += dy;
+    display_map(Game);
+    refresh();
+}
+
+bool can_push(int dx, int dy, struct status* Game) {
+    bool can = false;
+    if (Game->map[Game->me_x+dx][Game->me_y+dy] == BOX && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != WALL 
+        && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != BOX) can = true;
+    return can;
+}
+
+void push_box(int dx, int dy, struct status* Game) {
+    clear();
+    Game->map[Game->me_x][Game->me_y] = ' ';
+    Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
+    Game->map[Game->me_x+2*dx][Game->me_y+2*dy] = BOX;
+    Game->me_x += dx;
+    Game->me_y += dy;
+    display_map(Game);
+    refresh();
 }
