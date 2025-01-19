@@ -9,6 +9,7 @@
 #define KEY_A 97
 #define KEY_S 115
 #define KEY_D 100
+#define KEY_R 114
 
 #define N 12
 #define M 23
@@ -46,6 +47,7 @@ bool can_move(int dx, int dy, struct status* Game);
 void free_move(int dx, int dy, struct status* Game);
 bool can_push(int dx, int dy, struct status* Game);
 void push_box(int dx, int dy, struct status* Game);
+void reload_map(struct status* Game);
 
 int main() {
     
@@ -106,6 +108,8 @@ void print_text(int x, int y, char* text) {
     printw("%s",text);
 }
 
+void reload_map(struct status* Game);
+
 void game_loop(struct status* Game) {
     int err = download_map(Game);
 
@@ -134,7 +138,9 @@ void game_loop(struct status* Game) {
         case KEY_W:
             move_me(-1,0,Game);
             break;
-        
+        case KEY_R:
+            reload_map(Game);
+            break;
         default:
             break;
         }
@@ -243,6 +249,13 @@ void push_box(int dx, int dy, struct status* Game) {
     Game->map[Game->me_x+2*dx][Game->me_y+2*dy] = BOX;
     Game->me_x += dx;
     Game->me_y += dy;
+    display_map(Game);
+    refresh();
+}
+
+void reload_map(struct status* Game) {
+    clear();
+    download_map(Game);
     display_map(Game);
     refresh();
 }
