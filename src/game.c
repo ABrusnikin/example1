@@ -10,10 +10,8 @@
 #define KEY_S 115
 #define KEY_D 100
 #define KEY_R 114
-
-#define N 13 // x
-#define M 24 // y
-
+// #define N 13 // x
+// #define M 24 // y
 #define WALL 88         // 'X'
 #define BOX 42          // '*' 
 #define BOX_ON_POINT 79 // 'O; 
@@ -94,17 +92,14 @@ int main() {
                 /*** play_game(): ***/
             game_loop(&Game);
             Game.want_to_quit = 0;
-            // getch();
         }
     }
                 /*** finish_game(): ***/
     endwin();
-    // printf("%d\n",' ');
     return 0;
 }
 
 void init_screen() {
-    // system("resize -s 25 80");
     initscr();
     cbreak();
     noecho();
@@ -146,7 +141,7 @@ void load_level_screen() {
     print_text(x/2-2, y/2-3,"Loading level 01");
     
     yellow_1();
-    print_text(x/2, y/2-3,"W,A,S,D");
+    print_text(x/2, y/2-3,"W A S D");
     
     return_white(1);
     printw(" to move");
@@ -228,7 +223,7 @@ void game_loop(struct status* Game) {
         }
     }
 
-    if (!err) free_map(N,Game->map); 
+    if (!err) free_map(Game->x_map,Game->map); 
 }
 
 int download_map(struct status* Game) {
@@ -236,16 +231,20 @@ int download_map(struct status* Game) {
     if (file == NULL) {
         perror("Ошибка при открытии файла");
         return 1;
-    }   
-    Game->map = calloc(N, sizeof(char*));
-    for (int i =0; i<N; i++) {
-        Game->map[i] = calloc(M,sizeof(char));
     }
-    clear_map(N,M,Game->map);
+
+    Game->x_map = 13;
+    Game->y_map = 24;
+
+    Game->map = calloc(Game->x_map, sizeof(char*));
+    for (int i =0; i<Game->x_map; i++) {
+        Game->map[i] = calloc(Game->y_map,sizeof(char));
+    }
+    clear_map(Game->x_map,Game->y_map,Game->map);
 
     char temp_ch;
-    for (int i =0; i < N; i++) {
-        for (int j=0; j<M; j++) {
+    for (int i =0; i < Game->x_map; i++) {
+        for (int j=0; j<Game->y_map; j++) {
             temp_ch = fgetc(file);
             if (temp_ch == '.') Game->points_to_win++;
             if (temp_ch == '\n' || temp_ch == EOF) break;
@@ -270,15 +269,6 @@ void clear_map(int n,int m, char** arr) {
     }
 }
 
-// void print_map(int n,int m, char** arr) {
-//     for (int i =0; i<n; i++) {
-//         for (int j=0; j<m; j++) {
-//             printf("%c",arr[i][j]);
-//         }
-//         printf("\n");
-//     }
-// }
-
 void free_map(int n, char** arr) {
     for (int i =0; i<n; i++) {
         free(arr[i]);
@@ -287,11 +277,10 @@ void free_map(int n, char** arr) {
 }
 
 void display_map(struct status* Game) {
-    for (int i =0; i<N; i++) {
+    for (int i =0; i<Game->x_map; i++) {
         move(i,0);
-        for (int j=0; j<M; j++) {
+        for (int j=0; j<Game->y_map; j++) {
             fill_tile(i,j,Game);
-            // addch(Game->map[i][j]);
         }
     }
 }
@@ -341,7 +330,7 @@ void push_box(int dx, int dy, struct status* Game) {
     move_my_coords(dx,dy,Game);
     display_map(Game);
     if (Game->points_to_win==0) {
-        print_text(N,0,"Level done");
+        print_text(Game->x_map+1,0,"Level done");
         Game->want_to_quit = 1;
         getch();
     }
@@ -391,10 +380,6 @@ void fill_tile(int i, int j, struct status* Game) {
     switch (sym)
     {
     case WALL:
-        // green_2();
-        // addch(sym);
-        // return_white(2);
-        // break;
         magenta_3();
         addch(sym);
         return_white(3);
@@ -407,10 +392,6 @@ void fill_tile(int i, int j, struct status* Game) {
         break;
 
     case PLAYER:
-        // magenta_3();
-        // addch(sym);
-        // return_white(3);
-        // break;
         green_2();
         addch(sym);
         return_white(2);
