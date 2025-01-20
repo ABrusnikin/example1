@@ -41,7 +41,7 @@ void game_loop(struct status* Game);
 
 int download_map(struct status* Game);
 void clear_map(int n,int m, char** arr);
-void print_map(int n,int m, char** arr);
+// void print_map(int n,int m, char** arr);
 void free_map(int n,char** arr);
 
 void display_map(struct status* Game);
@@ -51,6 +51,11 @@ void move_free(int dx, int dy, struct status* Game);
 bool can_push_box(int dx, int dy, struct status* Game);
 void push_box(int dx, int dy, struct status* Game);
 void reload_map(struct status* Game);
+
+void set_square(int dx, int dy, char c, struct status* Game);
+char next_square(int dx, int dy, struct status* Game);
+char next_2_square(int dx, int dy, struct status* Game);
+void move_my_coords(int dx, int dy, struct status* Game);
 
 int main() {
     
@@ -189,14 +194,14 @@ void clear_map(int n,int m, char** arr) {
     }
 }
 
-void print_map(int n,int m, char** arr) {
-    for (int i =0; i<n; i++) {
-        for (int j=0; j<m; j++) {
-            printf("%c",arr[i][j]);
-        }
-        printf("\n");
-    }
-}
+// void print_map(int n,int m, char** arr) {
+//     for (int i =0; i<n; i++) {
+//         for (int j=0; j<m; j++) {
+//             printf("%c",arr[i][j]);
+//         }
+//         printf("\n");
+//     }
+// }
 
 void free_map(int n, char** arr) {
     for (int i =0; i<n; i++) {
@@ -222,7 +227,7 @@ void move_me(int dx, int dy, struct status* Game) {
 
 bool can_move_free(int dx, int dy, struct status* Game) {
     bool can = false;
-    if (Game->map[Game->me_x+dx][Game->me_y+dy] != WALL && Game->map[Game->me_x+dx][Game->me_y+dy] != BOX) can = true;
+    if (next_square(dx,dy,Game) != WALL && next_square(dx,dy,Game) != BOX) can = true;
     return can;
 }
 
@@ -230,34 +235,32 @@ void move_free(int dx, int dy, struct status* Game) {
     clear();
     
     if (Game->me_on_point) {
-        Game->map[Game->me_x][Game->me_y] = POINT;
+        set_square(0,0,POINT,Game);
         Game->me_on_point = false;
         }
-        else Game->map[Game->me_x][Game->me_y] = ' ';
+        else set_square(0,0,' ',Game);
 
-    if (Game->map[Game->me_x+dx][Game->me_y+dy] == POINT) Game->me_on_point = true;
+    if (next_square(dx,dy,Game) == POINT) Game->me_on_point = true;
 
-    Game->map[Game->me_x+dx][Game->me_y+dy] = PLAYER;
-    Game->me_x += dx;
-    Game->me_y += dy;
+    set_square(dx,dy,PLAYER,Game);
+    move_my_coords(dx,dy,Game);
     display_map(Game);
     refresh();
 }
 
 bool can_push_box(int dx, int dy, struct status* Game) {
     bool can = false;
-    if (Game->map[Game->me_x+dx][Game->me_y+dy] == BOX && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != WALL 
-        && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != BOX) can = true;
+    if (next_square(dx,dy,Game) == BOX && next_2_square(dx,dy,Game) != WALL 
+        && next_2_square(dx,dy,Game) != BOX) can = true;
     return can;
 }
 
 void push_box(int dx, int dy, struct status* Game) {
     clear();
-    Game->map[Game->me_x][Game->me_y] = ' ';
-    Game->map[Game->me_x+dx][Game->me_y+dy] = PLAYER;
-    Game->map[Game->me_x+2*dx][Game->me_y+2*dy] = BOX;
-    Game->me_x += dx;
-    Game->me_y += dy;
+    set_square(0,0,' ',Game);
+    set_square(dx,dy,PLAYER,Game);
+    set_square(2*dx,2*dy,BOX,Game);
+    move_my_coords(dx,dy,Game);
     display_map(Game);
     refresh();
 }
@@ -267,4 +270,21 @@ void reload_map(struct status* Game) {
     download_map(Game);
     display_map(Game);
     refresh();
+}
+
+void set_square(int dx, int dy,char c, struct status* Game) {
+ Game->map[Game->me_x+dx][Game->me_y+dy] = c;
+}
+
+char next_square(int dx, int dy, struct status* Game) {
+ return Game->map[Game->me_x+dx][Game->me_y+dy];
+}
+
+char next_2_square(int dx, int dy, struct status* Game) {
+ return Game->map[Game->me_x+2*dx][Game->me_y+2*dy];
+}
+
+void move_my_coords(int dx, int dy, struct status* Game) {
+    Game->me_x += dx;
+    Game->me_y += dy;
 }
