@@ -11,11 +11,13 @@
 #define KEY_D 100
 #define KEY_R 114
 
-#define N 12
-#define M 23
+#define N 13
+#define M 24
 
 #define WALL 88
 #define BOX 42
+#define PLAYER 64
+#define POINT 46
 
 struct status
 {
@@ -28,6 +30,7 @@ struct status
     int y_map;
     int me_x;
     int me_y;
+    bool me_on_point;
 };
 
 void init_screen();
@@ -43,9 +46,9 @@ void free_map(int n,char** arr);
 
 void display_map(struct status* Game);
 void move_me(int dx, int dy, struct status* Game);
-bool can_move(int dx, int dy, struct status* Game);
-void free_move(int dx, int dy, struct status* Game);
-bool can_push(int dx, int dy, struct status* Game);
+bool can_move_free(int dx, int dy, struct status* Game);
+void move_free(int dx, int dy, struct status* Game);
+bool can_push_box(int dx, int dy, struct status* Game);
 void push_box(int dx, int dy, struct status* Game);
 void reload_map(struct status* Game);
 
@@ -53,7 +56,7 @@ int main() {
     
     init_screen();
 
-    struct status Game = {0,1,0,0,NULL,0,0,0,0};
+    struct status Game = {0,1,0,0,NULL,0,0,0,0,0};
     getmaxyx(stdscr, Game.max_x, Game.max_y);
     
                 /*** start_screen(): ***/
@@ -107,8 +110,6 @@ void print_text(int x, int y, char* text) {
     move(x,y);
     printw("%s",text);
 }
-
-void reload_map(struct status* Game);
 
 void game_loop(struct status* Game) {
     int err = download_map(Game);
@@ -214,28 +215,36 @@ void display_map(struct status* Game) {
 }
 
 void move_me(int dx, int dy, struct status* Game) {
-    if (can_move(dx,dy,Game)) free_move(dx,dy,Game);
+    if (can_move_free(dx,dy,Game)) move_free(dx,dy,Game);
         else 
-            if (can_push(dx,dy,Game)) push_box(dx,dy,Game);
+            if (can_push_box(dx,dy,Game)) push_box(dx,dy,Game);
 }
 
-bool can_move(int dx, int dy, struct status* Game) {
+bool can_move_free(int dx, int dy, struct status* Game) {
     bool can = false;
     if (Game->map[Game->me_x+dx][Game->me_y+dy] != WALL && Game->map[Game->me_x+dx][Game->me_y+dy] != BOX) can = true;
     return can;
 }
 
-void free_move(int dx, int dy, struct status* Game) {
+void move_free(int dx, int dy, struct status* Game) {
     clear();
-    Game->map[Game->me_x][Game->me_y] = ' ';
-    Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
+    
+    if (Game->me_on_point) {
+        Game->map[Game->me_x][Game->me_y] = POINT;
+        Game->me_on_point = false;
+        }
+        else Game->map[Game->me_x][Game->me_y] = ' ';
+
+    if (Game->map[Game->me_x+dx][Game->me_y+dy] == POINT) Game->me_on_point = true;
+
+    Game->map[Game->me_x+dx][Game->me_y+dy] = PLAYER;
     Game->me_x += dx;
     Game->me_y += dy;
     display_map(Game);
     refresh();
 }
 
-bool can_push(int dx, int dy, struct status* Game) {
+bool can_push_box(int dx, int dy, struct status* Game) {
     bool can = false;
     if (Game->map[Game->me_x+dx][Game->me_y+dy] == BOX && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != WALL 
         && Game->map[Game->me_x+2*dx][Game->me_y+2*dy] != BOX) can = true;
@@ -245,7 +254,7 @@ bool can_push(int dx, int dy, struct status* Game) {
 void push_box(int dx, int dy, struct status* Game) {
     clear();
     Game->map[Game->me_x][Game->me_y] = ' ';
-    Game->map[Game->me_x+dx][Game->me_y+dy] = '@';
+    Game->map[Game->me_x+dx][Game->me_y+dy] = PLAYER;
     Game->map[Game->me_x+2*dx][Game->me_y+2*dy] = BOX;
     Game->me_x += dx;
     Game->me_y += dy;
