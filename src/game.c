@@ -15,11 +15,17 @@
 #define M 24 // y
 
 #define WALL 88         // 'X'
-#define BOX 42          // '*'
-#define BOX_ON_POINT 79 // 'O;
+#define BOX 42          // '*' 
+#define BOX_ON_POINT 79 // 'O; 
 #define PLAYER 64       // '@'
 #define POINT 46        // '.'
 #define EMPTY 32        // ' '
+
+#define WALL_COLOR 3
+#define BOX_COLOR 1
+#define PLAYER_COLOR 2
+#define POINT_COLOR 4
+
 
 struct status
 {
@@ -37,15 +43,23 @@ struct status
 };
 
 void init_screen();
-int start_screen(struct status* Game);
-void load_level_screen(struct status* Game);
+int start_screen();
+void load_level_screen();
 void print_text(int x, int y, char* text);
+
+void yellow_1();
+void green_2();
+void return_white(int n);
+void magenta_3();
+void cyan_4();
+
 void game_loop(struct status* Game);
 
 int download_map(struct status* Game);
 void clear_map(int n,int m, char** arr);
 // void print_map(int n,int m, char** arr);
 void free_map(int n,char** arr);
+void fill_tile(int i, int j, struct status* Game);
 
 void display_map(struct status* Game);
 void move_me(int dx, int dy, struct status* Game);
@@ -76,7 +90,7 @@ int main() {
         if (key_pressed == KEY_Q) Game.want_to_quit = 1;
         if (key_pressed == KEY_Y) {
                 /*** level_screen(): ***/
-            load_level_screen(&Game);
+            load_level_screen();
                 /*** play_game(): ***/
             game_loop(&Game);
             Game.want_to_quit = 0;
@@ -95,27 +109,82 @@ void init_screen() {
     cbreak();
     noecho();
     curs_set(0);
+    start_color();
+    init_pair(BOX_COLOR,COLOR_YELLOW,COLOR_BLACK);
+    init_pair(PLAYER_COLOR,COLOR_GREEN,COLOR_BLACK);
+    init_pair(WALL_COLOR,COLOR_MAGENTA,COLOR_BLACK);
+    init_pair(POINT_COLOR,COLOR_CYAN,COLOR_BLACK);
 }
 
-int start_screen(struct status* Game) {
+int start_screen() {
     clear();
-    getmaxyx(stdscr, Game->max_x, Game->max_y);
-    print_text(Game->max_x/2-1, Game->max_y/2,"Want to play");
-    print_text(Game->max_x/2+1, Game->max_y/2-5,"y - to play, q - to exit");
+    int x,y;
+    getmaxyx(stdscr, x, y);
+
+    print_text(x/2-1, y/2,"Want to play?");
+
+    yellow_1();
+    print_text(x/2+1, y/2-5,"Y");
+
+    return_white(1);
+    printw(" - to play, ");
+
+    yellow_1();
+    printw("Q");
+
+    return_white(1);
+    printw(" - to exit");
     refresh();
     return getch();
 }
 
-void load_level_screen(struct status* Game) {
+void load_level_screen() {
     clear();
-    getmaxyx(stdscr, Game->max_x, Game->max_y);
-    print_text(Game->max_x/2-2, Game->max_y/2-3,"Loading level 01");
-    print_text(Game->max_x/2, Game->max_y/2-3,"W,A,S,D to move");
-    print_text(Game->max_x/2+1, Game->max_y/2-3,"r - to restart");
-    print_text(Game->max_x/2+2, Game->max_y/2-3,"q - to quit");
-    print_text(Game->max_x/2+4, Game->max_y/2-3,"Press any key\n");
+    int x,y;
+    getmaxyx(stdscr, x, y);
+    
+    print_text(x/2-2, y/2-3,"Loading level 01");
+    
+    yellow_1();
+    print_text(x/2, y/2-3,"W,A,S,D");
+    
+    return_white(1);
+    printw(" to move");
+    
+    yellow_1();
+    print_text(x/2+1, y/2-3,"R");
+    
+    return_white(1);
+    printw(" - to restart");
+    
+    yellow_1();
+    print_text(x/2+2, y/2-3,"Q");
+    
+    return_white(1);
+    printw(" - to quit");
+    print_text(x/2+4, y/2-3,"Press any key\n");
     refresh();
     getch();
+}
+
+void yellow_1() {
+    attron(COLOR_PAIR(1));
+}
+
+void return_white(int n) {
+    attroff(COLOR_PAIR(n));
+}
+
+void green_2() {
+    attron(COLOR_PAIR(2));
+}
+
+void magenta_3() {
+    attron(COLOR_PAIR(3));
+}
+
+void cyan_4() {
+    attron(COLOR_PAIR(4));
 }
 
 void print_text(int x, int y, char* text) {
@@ -221,7 +290,8 @@ void display_map(struct status* Game) {
     for (int i =0; i<N; i++) {
         move(i,0);
         for (int j=0; j<M; j++) {
-            addch(Game->map[i][j]);
+            fill_tile(i,j,Game);
+            // addch(Game->map[i][j]);
         }
     }
 }
@@ -258,7 +328,7 @@ bool can_push_box(int dx, int dy, struct status* Game) {
     return can;
 }
 
-void push_box(int dx, int dy, struct status* Game) {
+void push_box(int dx, int dy, struct status* Game) { 
     clear();
     check_points(dx,dy,Game);
     make_prev_square_empty(Game);
@@ -314,4 +384,52 @@ void make_prev_square_empty(struct status* Game) {
         Game->me_on_point = false;
     }
         else set_square(0,0,EMPTY,Game);
+}
+
+void fill_tile(int i, int j, struct status* Game) {
+    char sym = Game->map[i][j];
+    switch (sym)
+    {
+    case WALL:
+        // green_2();
+        // addch(sym);
+        // return_white(2);
+        // break;
+        magenta_3();
+        addch(sym);
+        return_white(3);
+        break;
+
+    case BOX:
+        yellow_1();
+        addch(sym);
+        return_white(1);
+        break;
+
+    case PLAYER:
+        // magenta_3();
+        // addch(sym);
+        // return_white(3);
+        // break;
+        green_2();
+        addch(sym);
+        return_white(2);
+        break;
+
+    case POINT:
+        cyan_4();
+        addch(sym);
+        return_white(4);
+        break;
+
+    case BOX_ON_POINT:
+        yellow_1();
+        addch(sym);
+        return_white(1);
+        break;
+
+    default:
+        addch(sym);
+        break;
+    }
 }
