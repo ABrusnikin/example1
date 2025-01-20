@@ -14,11 +14,12 @@
 #define N 13 // x
 #define M 24 // y
 
-#define WALL 88     // 'X'
-#define BOX 42      // '*'
-#define PLAYER 64   // '@'
-#define POINT 46    // '.'
-#define EMPTY 32    // ' '
+#define WALL 88         // 'X'
+#define BOX 42          // '*'
+#define BOX_ON_POINT 79 // 'O;
+#define PLAYER 64       // '@'
+#define POINT 46        // '.'
+#define EMPTY 32        // ' '
 
 struct status
 {
@@ -229,7 +230,8 @@ void move_me(int dx, int dy, struct status* Game) {
 
 bool can_move_free(int dx, int dy, struct status* Game) {
     bool can = false;
-    if (next_square(dx,dy,Game) != WALL && next_square(dx,dy,Game) != BOX) can = true;
+    if (next_square(dx,dy,Game) != WALL && next_square(dx,dy,Game) != BOX 
+        && next_square(dx,dy,Game) != BOX_ON_POINT) can = true;
     return can;
 }
 
@@ -249,16 +251,26 @@ void move_free(int dx, int dy, struct status* Game) {
 
 bool can_push_box(int dx, int dy, struct status* Game) {
     bool can = false;
-    if (next_square(dx,dy,Game) == BOX && next_2_square(dx,dy,Game) != WALL 
-        && next_2_square(dx,dy,Game) != BOX) can = true;
+    if ((next_square(dx,dy,Game) == BOX || next_square(dx,dy,Game) == BOX_ON_POINT) && 
+        next_2_square(dx,dy,Game) != WALL &&
+        next_2_square(dx,dy,Game) != BOX &&
+        next_2_square(dx,dy,Game) != BOX_ON_POINT) can = true;
     return can;
 }
 
 void push_box(int dx, int dy, struct status* Game) {
     clear();
-    set_square(0,0,EMPTY,Game);
+    if (Game->me_on_point) {
+        set_square(0,0,POINT,Game);
+        Game->me_on_point = false;
+        }
+        else set_square(0,0,EMPTY,Game);
+    if (next_square(dx,dy,Game) == BOX_ON_POINT) Game->me_on_point = true;
     set_square(dx,dy,PLAYER,Game);
-    set_square(2*dx,2*dy,BOX,Game);
+
+    if (next_2_square(dx,dy,Game)==POINT) set_square(2*dx,2*dy,BOX_ON_POINT,Game);
+        else set_square(2*dx,2*dy,BOX,Game);
+
     move_my_coords(dx,dy,Game);
     display_map(Game);
     refresh();
