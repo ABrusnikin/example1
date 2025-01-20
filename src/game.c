@@ -30,6 +30,7 @@ struct status
     char** map;
     int x_map;
     int y_map;
+    int points_to_win;
     int me_x;
     int me_y;
     bool me_on_point;
@@ -58,12 +59,15 @@ void set_square(int dx, int dy, char c, struct status* Game);
 char next_square(int dx, int dy, struct status* Game);
 char next_2_square(int dx, int dy, struct status* Game);
 void move_my_coords(int dx, int dy, struct status* Game);
+void make_prev_square_empty(struct status* Game);
+
+void check_points(int dx, int dy, struct status* Game);
 
 int main() {
     
     init_screen();
 
-    struct status Game = {0,1,0,0,NULL,0,0,0,0,0};
+    struct status Game = {0,1,0,0,NULL,0,0,0,0,0,0};
     getmaxyx(stdscr, Game.max_x, Game.max_y);
     
                 /*** start_screen(): ***/
@@ -174,7 +178,7 @@ int download_map(struct status* Game) {
     for (int i =0; i < N; i++) {
         for (int j=0; j<M; j++) {
             temp_ch = fgetc(file);
-        
+            if (temp_ch == '.') Game->points_to_win++;
             if (temp_ch == '\n' || temp_ch == EOF) break;
             Game->map[i][j] = temp_ch;
             if (temp_ch == PLAYER) {
@@ -237,11 +241,7 @@ bool can_move_free(int dx, int dy, struct status* Game) {
 
 void move_free(int dx, int dy, struct status* Game) {
     clear();
-    if (Game->me_on_point) {
-        set_square(0,0,POINT,Game);
-        Game->me_on_point = false;
-        }
-        else set_square(0,0,EMPTY,Game);
+    make_prev_square_empty(Game);
     if (next_square(dx,dy,Game) == POINT) Game->me_on_point = true;
     set_square(dx,dy,PLAYER,Game);
     move_my_coords(dx,dy,Game);
@@ -260,24 +260,27 @@ bool can_push_box(int dx, int dy, struct status* Game) {
 
 void push_box(int dx, int dy, struct status* Game) {
     clear();
-    if (Game->me_on_point) {
-        set_square(0,0,POINT,Game);
-        Game->me_on_point = false;
-        }
-        else set_square(0,0,EMPTY,Game);
+    check_points(dx,dy,Game);
+    make_prev_square_empty(Game);
     if (next_square(dx,dy,Game) == BOX_ON_POINT) Game->me_on_point = true;
     set_square(dx,dy,PLAYER,Game);
-
-    if (next_2_square(dx,dy,Game)==POINT) set_square(2*dx,2*dy,BOX_ON_POINT,Game);
+    if (next_2_square(dx,dy,Game)==POINT) {
+        set_square(2*dx,2*dy,BOX_ON_POINT,Game);
+    }
         else set_square(2*dx,2*dy,BOX,Game);
-
     move_my_coords(dx,dy,Game);
     display_map(Game);
+    if (Game->points_to_win==0) {
+        print_text(N,0,"Level done");
+        Game->want_to_quit = 1;
+        getch();
+    }
     refresh();
 }
 
 void reload_map(struct status* Game) {
     clear();
+    Game->points_to_win = 0;
     download_map(Game);
     display_map(Game);
     refresh();
@@ -298,4 +301,17 @@ char next_2_square(int dx, int dy, struct status* Game) {
 void move_my_coords(int dx, int dy, struct status* Game) {
     Game->me_x += dx;
     Game->me_y += dy;
+}
+
+void check_points(int dx, int dy, struct status* Game) {
+    if (next_square(dx,dy, Game)==BOX && next_2_square(dx,dy, Game)==POINT) Game->points_to_win--;
+    if (next_square(dx,dy, Game)==BOX_ON_POINT && next_2_square(dx,dy, Game)!=POINT) Game->points_to_win++;
+}
+
+void make_prev_square_empty(struct status* Game) {
+    if (Game->me_on_point) {
+        set_square(0,0,POINT,Game);
+        Game->me_on_point = false;
+    }
+        else set_square(0,0,EMPTY,Game);
 }
