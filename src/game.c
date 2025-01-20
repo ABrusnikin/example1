@@ -11,13 +11,14 @@
 #define KEY_D 100
 #define KEY_R 114
 
-#define N 13
-#define M 24
+#define N 13 // x
+#define M 24 // y
 
-#define WALL 88
-#define BOX 42
-#define PLAYER 64
-#define POINT 46
+#define WALL 88     // 'X'
+#define BOX 42      // '*'
+#define PLAYER 64   // '@'
+#define POINT 46    // '.'
+#define EMPTY 32    // ' '
 
 struct status
 {
@@ -79,6 +80,7 @@ int main() {
     }
                 /*** finish_game(): ***/
     endwin();
+    // printf("%d\n",' ');
     return 0;
 }
 
@@ -174,7 +176,7 @@ int download_map(struct status* Game) {
         
             if (temp_ch == '\n' || temp_ch == EOF) break;
             Game->map[i][j] = temp_ch;
-            if (temp_ch == '@') {
+            if (temp_ch == PLAYER) {
                 Game->me_x = i;
                 Game->me_y = j;
             }
@@ -189,7 +191,7 @@ int download_map(struct status* Game) {
 void clear_map(int n,int m, char** arr) {
     for (int i =0; i<n; i++) {
         for (int j=0; j<m; j++) {
-            arr[i][j] = ' ';
+            arr[i][j] = EMPTY;
         }
     }
 }
@@ -233,15 +235,12 @@ bool can_move_free(int dx, int dy, struct status* Game) {
 
 void move_free(int dx, int dy, struct status* Game) {
     clear();
-    
     if (Game->me_on_point) {
         set_square(0,0,POINT,Game);
         Game->me_on_point = false;
         }
-        else set_square(0,0,' ',Game);
-
+        else set_square(0,0,EMPTY,Game);
     if (next_square(dx,dy,Game) == POINT) Game->me_on_point = true;
-
     set_square(dx,dy,PLAYER,Game);
     move_my_coords(dx,dy,Game);
     display_map(Game);
@@ -257,7 +256,7 @@ bool can_push_box(int dx, int dy, struct status* Game) {
 
 void push_box(int dx, int dy, struct status* Game) {
     clear();
-    set_square(0,0,' ',Game);
+    set_square(0,0,EMPTY,Game);
     set_square(dx,dy,PLAYER,Game);
     set_square(2*dx,2*dy,BOX,Game);
     move_my_coords(dx,dy,Game);
