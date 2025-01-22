@@ -139,7 +139,7 @@ void load_level_screen() {
     int x,y;
     getmaxyx(stdscr, x, y);
     
-    print_text(x/2-2, y/2-3,"Loading level 01");
+    print_text(x/2-2, y/2,"Sokoban");
     
     yellow_1();
     print_text(x/2, y/2-3,"W A S D");
@@ -405,8 +405,10 @@ void push_box(int dx, int dy, struct status* Game) {
     display_map(Game);
     if (Game->points_to_win==0) {
         print_text(Game->x_map+1,0,"Level done");
-        Game->want_to_quit = 1;
+        Game->level++;
+        // Game->want_to_quit = 1;
         getch();
+        reload_map(Game);
     }
     refresh();
 }
