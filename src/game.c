@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define KEY_Q 113
 #define KEY_Y 121
@@ -12,7 +13,7 @@
 #define KEY_R 114
 // #define N 13 // x
 // #define M 24 // y
-#define WALL 88         // 'X'
+#define WALL 88         // 'X'`
 #define BOX 42          // '*' 
 #define BOX_ON_POINT 79 // 'O; 
 #define PLAYER 64       // '@'
@@ -227,6 +228,76 @@ void game_loop(struct status* Game) {
 }
 
 int download_map(struct status* Game) {
+
+    /* create a string-level to find */
+    int level_number = Game->level;
+    char maze_n[8] = "Maze: ";
+    char add_maze[5];
+    sprintf(add_maze,"%d",level_number);
+    strcat(maze_n,add_maze);
+
+    /* open map-file */
+    FILE *maps = fopen("src/01.txt", "r");
+    if (maps == NULL) {
+        perror("Ошибка при открытии файла");
+        return 1;
+    }
+
+    /* find current map-level */
+    char line[50];
+    while (fgets(line,sizeof(line),maps)!=NULL) {
+        line[strcspn(line, "\n")] = '\0';
+        if (strcmp(line,maze_n)==0) break;
+    }
+    
+    /* set y-size map */
+    while (fgets(line,sizeof(line),maps)!=NULL) {
+        if (strstr(line,"Size X:")!=NULL) break;
+    }
+    sscanf(line+8,"%d",&Game->y_map);
+    // printf("y - %d\n",Game->y_map);
+
+    /* set x-size map */
+    while (fgets(line,sizeof(line),maps)!=NULL) {
+        if (strstr(line,"Size Y:")!=NULL) break;
+    }
+    sscanf(line+8,"%d",&Game->x_map);
+    // printf("x - %d\n",Game->x_map);
+
+    /* find current map */
+    while (fgets(line,sizeof(line),maps)!=NULL) {
+        if (strlen(line)==1) break;
+    }
+
+    /* create a map-matrix */
+    Game->map = calloc(Game->x_map, sizeof(char*));
+    for (int i =0; i<Game->x_map; i++) {
+        Game->map[i] = calloc(Game->y_map+1,sizeof(char));
+    }
+
+    /* fill the map-matrix */
+    clear_map(Game->x_map,Game->y_map,Game->map);
+    for (int i =0; i < Game-> x_map; i++) {
+        for (int j=0; j < Game-> y_map; j++) {
+            char temp_ch = fgetc(maps);
+            if (temp_ch == '.') Game->points_to_win++;
+            if (temp_ch == '\n') break;
+            Game->map[i][j] = temp_ch;
+            if (temp_ch == PLAYER) {
+                Game->me_x = i;
+                Game->me_y = j;
+            }
+        }
+        // Game->map[i][Game->y_map] = '\0';
+            fgetc(maps);
+    }
+
+    fclose(maps);
+    return 0;
+}
+
+/*
+int download_map(struct status* Game) {
     FILE *file = fopen("src/01.txt", "r");
     if (file == NULL) {
         perror("Ошибка при открытии файла");
@@ -260,6 +331,7 @@ int download_map(struct status* Game) {
     fclose(file);
     return 0;
 }
+*/
 
 void clear_map(int n,int m, char** arr) {
     for (int i =0; i<n; i++) {
@@ -283,6 +355,8 @@ void display_map(struct status* Game) {
             fill_tile(i,j,Game);
         }
     }
+    // printw("%d\n",Game->x_map);
+    // printw("%d\n",Game->y_map);
 }
 
 void move_me(int dx, int dy, struct status* Game) {
