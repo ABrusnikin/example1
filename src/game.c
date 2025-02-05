@@ -11,8 +11,7 @@
 #define KEY_S 115
 #define KEY_D 100
 #define KEY_R 114
-// #define N 13 // x
-// #define M 24 // y
+
 #define WALL 88         // 'X'`
 #define BOX 42          // '*' 
 #define BOX_ON_POINT 79 // 'O; 
@@ -229,7 +228,7 @@ void game_loop(struct status* Game) {
 
 int download_map(struct status* Game) {
 
-    /* create a string-level to find */
+    /* create a string to find level number*/
     int level_number = Game->level;
     char maze_n[8] = "Maze: ";
     char add_maze[5];
@@ -250,19 +249,17 @@ int download_map(struct status* Game) {
         if (strcmp(line,maze_n)==0) break;
     }
     
-    /* set y-size map */
+    /* set y-size map (not an error)*/
     while (fgets(line,sizeof(line),maps)!=NULL) {
         if (strstr(line,"Size X:")!=NULL) break;
     }
     sscanf(line+8,"%d",&Game->y_map);
-    // printf("y - %d\n",Game->y_map);
 
-    /* set x-size map */
+    /* set x-size map (not an error)*/
     while (fgets(line,sizeof(line),maps)!=NULL) {
         if (strstr(line,"Size Y:")!=NULL) break;
     }
     sscanf(line+8,"%d",&Game->x_map);
-    // printf("x - %d\n",Game->x_map);
 
     /* find current map */
     while (fgets(line,sizeof(line),maps)!=NULL) {
@@ -296,43 +293,6 @@ int download_map(struct status* Game) {
     return 0;
 }
 
-/*
-int download_map(struct status* Game) {
-    FILE *file = fopen("src/01.txt", "r");
-    if (file == NULL) {
-        perror("Ошибка при открытии файла");
-        return 1;
-    }
-
-    Game->x_map = 13;
-    Game->y_map = 24;
-
-    Game->map = calloc(Game->x_map, sizeof(char*));
-    for (int i =0; i<Game->x_map; i++) {
-        Game->map[i] = calloc(Game->y_map,sizeof(char));
-    }
-    clear_map(Game->x_map,Game->y_map,Game->map);
-
-    char temp_ch;
-    for (int i =0; i < Game->x_map; i++) {
-        for (int j=0; j<Game->y_map; j++) {
-            temp_ch = fgetc(file);
-            if (temp_ch == '.') Game->points_to_win++;
-            if (temp_ch == '\n' || temp_ch == EOF) break;
-            Game->map[i][j] = temp_ch;
-            if (temp_ch == PLAYER) {
-                Game->me_x = i;
-                Game->me_y = j;
-            }
-        }
-        if (temp_ch == EOF) break;
-    }
-
-    fclose(file);
-    return 0;
-}
-*/
-
 void clear_map(int n,int m, char** arr) {
     for (int i =0; i<n; i++) {
         for (int j=0; j<m; j++) {
@@ -355,8 +315,6 @@ void display_map(struct status* Game) {
             fill_tile(i,j,Game);
         }
     }
-    // printw("%d\n",Game->x_map);
-    // printw("%d\n",Game->y_map);
 }
 
 void move_me(int dx, int dy, struct status* Game) {
@@ -406,7 +364,9 @@ void push_box(int dx, int dy, struct status* Game) {
     if (Game->points_to_win==0) {
         print_text(Game->x_map+1,0,"Level done");
         Game->level++;
-        // Game->want_to_quit = 1;
+        if (Game->level == 61) {
+            Game->want_to_quit = 1;
+            }
         getch();
         reload_map(Game);
     }
