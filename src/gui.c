@@ -1,5 +1,5 @@
-#include "game.h"
-// #include <ncurses.h>
+#include "gui.h"
+#include <ncurses.h>
 
 
 void init_screen() {
@@ -22,7 +22,9 @@ void refresh_screen() {
     refresh();
 }
 
-// void getmax_yx_screen(int* x, int* y) {
+void getmax_yx_screen(int* x, int* y) {
+getmaxyx(stdscr, *x, *y);
+}
 
 void yellow_1() {
     attron(COLOR_PAIR(1));
@@ -44,7 +46,27 @@ void cyan_4() {
     attron(COLOR_PAIR(4));
 }
 
+void move_cursor_to(int a, int b) {
+    move(a,b);
+}
+
 void print_text(int x, int y, char* text) {
-    move(x,y);
+    move_cursor_to(x,y);
     printw("%s",text);
+}
+
+int get_pressed_key() {
+    return getch();
+}
+
+void print_char(char c) {
+    addch(c);
+}
+
+void close_screen() {
+    endwin();
+}
+
+void print(char* text) {
+    printw("%s", text);
 }

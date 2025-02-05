@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <ncurses.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -18,12 +17,6 @@
 #define PLAYER 64       // '@'
 #define POINT 46        // '.'
 #define EMPTY 32        // ' '
-
-#define WALL_COLOR 3
-#define BOX_COLOR 1
-#define PLAYER_COLOR 2
-#define POINT_COLOR 4
-
 
 struct status
 {

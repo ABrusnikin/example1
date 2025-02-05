@@ -1,58 +1,8 @@
-// #include <stdio.h>
-// #include <ncurses.h>
-// #include <stdlib.h>
-// #include <stdbool.h>
-// #include <string.h>
 #include "game.h"
+#include "gui.h"
 
-// #define KEY_Q 113
-// #define KEY_Y 121
-// #define KEY_W 119
-// #define KEY_A 97
-// #define KEY_S 115
-// #define KEY_D 100
-// #define KEY_R 114
-
-// #define WALL 88         // 'X'`
-// #define BOX 42          // '*' 
-// #define BOX_ON_POINT 79 // 'O; 
-// #define PLAYER 64       // '@'
-// #define POINT 46        // '.'
-// #define EMPTY 32        // ' '
-
-// #define WALL_COLOR 3
-// #define BOX_COLOR 1
-// #define PLAYER_COLOR 2
-// #define POINT_COLOR 4
-
-
-// struct status
-// {
-//     bool want_to_quit;
-//     int level;
-//     int max_x;
-//     int max_y;
-//     char** map;
-//     int x_map;
-//     int y_map;
-//     int points_to_win;
-//     int me_x;
-//     int me_y;
-//     bool me_on_point;
-// };
-
-void init_screen();
 int start_screen();
 void load_level_screen();
-void print_text(int x, int y, char* text);
-void clear_screen();
-void refresh_screen();
-
-void yellow_1();
-void green_2();
-void return_white(int n);
-void magenta_3();
-void cyan_4();
 
 void game_loop(struct status* Game);
 
@@ -82,7 +32,7 @@ int main() {
     init_screen();
 
     struct status Game = {0,1,0,0,NULL,0,0,0,0,0,0};
-    getmaxyx(stdscr, Game.max_x, Game.max_y);
+    getmax_yx_screen(&Game.max_x, &Game.max_y);
     
                 /*** start_screen(): ***/
     while (!Game.want_to_quit) {
@@ -97,26 +47,14 @@ int main() {
         }
     }
                 /*** finish_game(): ***/
-    endwin();
+    close_screen();
     return 0;
 }
-
-// void init_screen() {
-//     initscr();
-//     cbreak();
-//     noecho();
-//     curs_set(0);
-//     start_color();
-//     init_pair(BOX_COLOR,COLOR_YELLOW,COLOR_BLACK);
-//     init_pair(PLAYER_COLOR,COLOR_GREEN,COLOR_BLACK);
-//     init_pair(WALL_COLOR,COLOR_MAGENTA,COLOR_BLACK);
-//     init_pair(POINT_COLOR,COLOR_CYAN,COLOR_BLACK);
-// }
 
 int start_screen() {
     clear_screen();
     int x,y;
-    getmaxyx(stdscr, x, y);  // going to gui
+    getmax_yx_screen(&x, &y);
 
     print_text(x/2-1, y/2,"Want to play?");
 
@@ -124,21 +62,21 @@ int start_screen() {
     print_text(x/2+1, y/2-5,"Y");
 
     return_white(1);
-    printw(" - to play, ");
+    print(" - to play, ");
 
     yellow_1();
-    printw("Q");
+    print("Q");
 
     return_white(1);
-    printw(" - to exit");
+    print(" - to exit");
     refresh_screen();
-    return getch();  // going to gui
+    return get_pressed_key();
 }
 
 void load_level_screen() {
     clear_screen();
     int x,y;
-    getmaxyx(stdscr, x, y);  // going to gui
+    getmax_yx_screen(&x, &y);
     
     print_text(x/2-2, y/2,"Sokoban");
     
@@ -146,48 +84,23 @@ void load_level_screen() {
     print_text(x/2, y/2-3,"W A S D");
     
     return_white(1);
-    printw(" to move");
+    print(" to move");
     
     yellow_1();
     print_text(x/2+1, y/2-3,"R");
     
     return_white(1);
-    printw(" - to restart");
+    print(" - to restart");
     
     yellow_1();
     print_text(x/2+2, y/2-3,"Q");
     
     return_white(1);
-    printw(" - to quit");
+    print(" - to quit");
     print_text(x/2+4, y/2-3,"Press any key\n");
     refresh_screen();
-    getch(); // going to gui
+    get_pressed_key();
 }
-
-// void yellow_1() {
-//     attron(COLOR_PAIR(1));
-// }
-
-// void return_white(int n) {
-//     attroff(COLOR_PAIR(n));
-// }
-
-// void green_2() {
-//     attron(COLOR_PAIR(2));
-// }
-
-// void magenta_3() {
-//     attron(COLOR_PAIR(3));
-// }
-
-// void cyan_4() {
-//     attron(COLOR_PAIR(4));
-// }
-
-// void print_text(int x, int y, char* text) {
-//     move(x,y);
-//     printw("%s",text);
-// }
 
 void game_loop(struct status* Game) {
     int err = download_map(Game);
@@ -199,7 +112,7 @@ void game_loop(struct status* Game) {
 
     int key;
     while (!Game->want_to_quit) {
-        key = getch();
+        key = get_pressed_key();
         switch (key)
         {
         case KEY_Q:
@@ -287,7 +200,6 @@ int download_map(struct status* Game) {
                 Game->me_y = j;
             }
         }
-        // Game->map[i][Game->y_map] = '\0';
             fgetc(maps);
     }
 
@@ -312,7 +224,7 @@ void free_map(int n, char** arr) {
 
 void display_map(struct status* Game) {
     for (int i =0; i<Game->x_map; i++) {
-        move(i,0); // going to gui
+        move_cursor_to(i,0); // going to gui
         for (int j=0; j<Game->y_map; j++) {
             fill_tile(i,j,Game);
         }
@@ -369,7 +281,7 @@ void push_box(int dx, int dy, struct status* Game) {
         if (Game->level == 61) {
             Game->want_to_quit = 1;
             }
-        getch(); // going to gui
+        get_pressed_key();
         reload_map(Game);
     }
     refresh_screen();
@@ -419,36 +331,36 @@ void fill_tile(int i, int j, struct status* Game) {
     {
     case WALL:
         magenta_3();
-        addch(sym);  // going to gui
+        print_char(sym);
         return_white(3);
         break;
 
     case BOX:
         yellow_1();
-        addch(sym);
+        print_char(sym);
         return_white(1);
         break;
 
     case PLAYER:
         green_2();
-        addch(sym);
+        print_char(sym);
         return_white(2);
         break;
 
     case POINT:
         cyan_4();
-        addch(sym);
+        print_char(sym);
         return_white(4);
         break;
 
     case BOX_ON_POINT:
         yellow_1();
-        addch(sym);
+        print_char(sym);
         return_white(1);
         break;
 
     default:
-        addch(sym);
+        print_char(sym);
         break;
     }
 }
