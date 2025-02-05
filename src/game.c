@@ -1,49 +1,52 @@
-#include <stdio.h>
-#include <ncurses.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+// #include <stdio.h>
+// #include <ncurses.h>
+// #include <stdlib.h>
+// #include <stdbool.h>
+// #include <string.h>
+#include "game.h"
 
-#define KEY_Q 113
-#define KEY_Y 121
-#define KEY_W 119
-#define KEY_A 97
-#define KEY_S 115
-#define KEY_D 100
-#define KEY_R 114
+// #define KEY_Q 113
+// #define KEY_Y 121
+// #define KEY_W 119
+// #define KEY_A 97
+// #define KEY_S 115
+// #define KEY_D 100
+// #define KEY_R 114
 
-#define WALL 88         // 'X'`
-#define BOX 42          // '*' 
-#define BOX_ON_POINT 79 // 'O; 
-#define PLAYER 64       // '@'
-#define POINT 46        // '.'
-#define EMPTY 32        // ' '
+// #define WALL 88         // 'X'`
+// #define BOX 42          // '*' 
+// #define BOX_ON_POINT 79 // 'O; 
+// #define PLAYER 64       // '@'
+// #define POINT 46        // '.'
+// #define EMPTY 32        // ' '
 
-#define WALL_COLOR 3
-#define BOX_COLOR 1
-#define PLAYER_COLOR 2
-#define POINT_COLOR 4
+// #define WALL_COLOR 3
+// #define BOX_COLOR 1
+// #define PLAYER_COLOR 2
+// #define POINT_COLOR 4
 
 
-struct status
-{
-    bool want_to_quit;
-    int level;
-    int max_x;
-    int max_y;
-    char** map;
-    int x_map;
-    int y_map;
-    int points_to_win;
-    int me_x;
-    int me_y;
-    bool me_on_point;
-};
+// struct status
+// {
+//     bool want_to_quit;
+//     int level;
+//     int max_x;
+//     int max_y;
+//     char** map;
+//     int x_map;
+//     int y_map;
+//     int points_to_win;
+//     int me_x;
+//     int me_y;
+//     bool me_on_point;
+// };
 
 void init_screen();
 int start_screen();
 void load_level_screen();
 void print_text(int x, int y, char* text);
+void clear_screen();
+void refresh_screen();
 
 void yellow_1();
 void green_2();
@@ -55,7 +58,6 @@ void game_loop(struct status* Game);
 
 int download_map(struct status* Game);
 void clear_map(int n,int m, char** arr);
-// void print_map(int n,int m, char** arr);
 void free_map(int n,char** arr);
 void fill_tile(int i, int j, struct status* Game);
 
@@ -99,22 +101,22 @@ int main() {
     return 0;
 }
 
-void init_screen() {
-    initscr();
-    cbreak();
-    noecho();
-    curs_set(0);
-    start_color();
-    init_pair(BOX_COLOR,COLOR_YELLOW,COLOR_BLACK);
-    init_pair(PLAYER_COLOR,COLOR_GREEN,COLOR_BLACK);
-    init_pair(WALL_COLOR,COLOR_MAGENTA,COLOR_BLACK);
-    init_pair(POINT_COLOR,COLOR_CYAN,COLOR_BLACK);
-}
+// void init_screen() {
+//     initscr();
+//     cbreak();
+//     noecho();
+//     curs_set(0);
+//     start_color();
+//     init_pair(BOX_COLOR,COLOR_YELLOW,COLOR_BLACK);
+//     init_pair(PLAYER_COLOR,COLOR_GREEN,COLOR_BLACK);
+//     init_pair(WALL_COLOR,COLOR_MAGENTA,COLOR_BLACK);
+//     init_pair(POINT_COLOR,COLOR_CYAN,COLOR_BLACK);
+// }
 
 int start_screen() {
-    clear();
+    clear_screen();
     int x,y;
-    getmaxyx(stdscr, x, y);
+    getmaxyx(stdscr, x, y);  // going to gui
 
     print_text(x/2-1, y/2,"Want to play?");
 
@@ -129,14 +131,14 @@ int start_screen() {
 
     return_white(1);
     printw(" - to exit");
-    refresh();
-    return getch();
+    refresh_screen();
+    return getch();  // going to gui
 }
 
 void load_level_screen() {
-    clear();
+    clear_screen();
     int x,y;
-    getmaxyx(stdscr, x, y);
+    getmaxyx(stdscr, x, y);  // going to gui
     
     print_text(x/2-2, y/2,"Sokoban");
     
@@ -158,42 +160,42 @@ void load_level_screen() {
     return_white(1);
     printw(" - to quit");
     print_text(x/2+4, y/2-3,"Press any key\n");
-    refresh();
-    getch();
+    refresh_screen();
+    getch(); // going to gui
 }
 
-void yellow_1() {
-    attron(COLOR_PAIR(1));
-}
+// void yellow_1() {
+//     attron(COLOR_PAIR(1));
+// }
 
-void return_white(int n) {
-    attroff(COLOR_PAIR(n));
-}
+// void return_white(int n) {
+//     attroff(COLOR_PAIR(n));
+// }
 
-void green_2() {
-    attron(COLOR_PAIR(2));
-}
+// void green_2() {
+//     attron(COLOR_PAIR(2));
+// }
 
-void magenta_3() {
-    attron(COLOR_PAIR(3));
-}
+// void magenta_3() {
+//     attron(COLOR_PAIR(3));
+// }
 
-void cyan_4() {
-    attron(COLOR_PAIR(4));
-}
+// void cyan_4() {
+//     attron(COLOR_PAIR(4));
+// }
 
-void print_text(int x, int y, char* text) {
-    move(x,y);
-    printw("%s",text);
-}
+// void print_text(int x, int y, char* text) {
+//     move(x,y);
+//     printw("%s",text);
+// }
 
 void game_loop(struct status* Game) {
     int err = download_map(Game);
 
     /*** a game ***/
-    clear();
+    clear_screen();
     display_map(Game);
-    refresh();
+    refresh_screen();
 
     int key;
     while (!Game->want_to_quit) {
@@ -310,7 +312,7 @@ void free_map(int n, char** arr) {
 
 void display_map(struct status* Game) {
     for (int i =0; i<Game->x_map; i++) {
-        move(i,0);
+        move(i,0); // going to gui
         for (int j=0; j<Game->y_map; j++) {
             fill_tile(i,j,Game);
         }
@@ -331,13 +333,13 @@ bool can_move_free(int dx, int dy, struct status* Game) {
 }
 
 void move_free(int dx, int dy, struct status* Game) {
-    clear();
+    clear_screen();
     make_prev_square_empty(Game);
     if (next_square(dx,dy,Game) == POINT) Game->me_on_point = true;
     set_square(dx,dy,PLAYER,Game);
     move_my_coords(dx,dy,Game);
     display_map(Game);
-    refresh();
+    refresh_screen();
 }
 
 bool can_push_box(int dx, int dy, struct status* Game) {
@@ -350,7 +352,7 @@ bool can_push_box(int dx, int dy, struct status* Game) {
 }
 
 void push_box(int dx, int dy, struct status* Game) { 
-    clear();
+    clear_screen();
     check_points(dx,dy,Game);
     make_prev_square_empty(Game);
     if (next_square(dx,dy,Game) == BOX_ON_POINT) Game->me_on_point = true;
@@ -367,18 +369,18 @@ void push_box(int dx, int dy, struct status* Game) {
         if (Game->level == 61) {
             Game->want_to_quit = 1;
             }
-        getch();
+        getch(); // going to gui
         reload_map(Game);
     }
-    refresh();
+    refresh_screen();
 }
 
 void reload_map(struct status* Game) {
-    clear();
+    clear_screen();
     Game->points_to_win = 0;
     download_map(Game);
     display_map(Game);
-    refresh();
+    refresh_screen();
 }
 
 void set_square(int dx, int dy,char c, struct status* Game) {
@@ -417,7 +419,7 @@ void fill_tile(int i, int j, struct status* Game) {
     {
     case WALL:
         magenta_3();
-        addch(sym);
+        addch(sym);  // going to gui
         return_white(3);
         break;
 
