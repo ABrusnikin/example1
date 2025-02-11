@@ -1,3 +1,6 @@
+#ifndef GAME_HEADER_H
+#define GAME_HEADER_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -58,3 +61,5 @@ void move_my_coords(int dx, int dy, struct status* Game);
 void make_prev_square_empty(struct status* Game);
 
 void check_points(int dx, int dy, struct status* Game);
+
+#endif /* GAME_HEADER_H */

@@ -1,3 +1,6 @@
+#ifndef GUI_HEADER_H
+#define GUI_HEADER_H
+
 #define WALL_COLOR 3
 #define BOX_COLOR 1
 #define PLAYER_COLOR 2
@@ -21,3 +24,5 @@ void close_screen();
 void print(char* text);
 
 void print_level(int x, int lvl);
+
+#endif /* GUI_HEADER_H */
