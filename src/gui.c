@@ -70,3 +70,8 @@ void close_screen() {
 void print(char* text) {
     printw("%s", text);
 }
+
+void print_level(int x, int lvl) {
+    print_text(x+1,0,"level ");
+    printw("%d",lvl);
+}

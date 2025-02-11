@@ -10,7 +10,7 @@ int main() {
     
                 /*** start_screen(): ***/
     while (!Game.want_to_quit) {
-        int key_pressed = start_screen(&Game);
+        int key_pressed = start_screen();
         if (key_pressed == KEY_Q) Game.want_to_quit = 1;
         if (key_pressed == KEY_Y) {
                 /*** level_screen(): ***/
@@ -107,6 +107,14 @@ void game_loop(struct status* Game) {
         case KEY_R:
             reload_map(Game);
             break;
+        case '+':
+            if (Game->level<60) Game->level++;
+            reload_map(Game);
+            break;
+        case '-':
+            if (Game->level>1) Game->level--;
+            reload_map(Game);
+            break;
         default:
             break;
         }
@@ -119,7 +127,7 @@ int download_map(struct status* Game) {
 
     /* create a string to find level number*/
     int level_number = Game->level;
-    char maze_n[8] = "Maze: ";
+    char maze_n[9] = "Maze: ";
     char add_maze[5];
     sprintf(add_maze,"%d",level_number);
     strcat(maze_n,add_maze);
@@ -198,11 +206,12 @@ void free_map(int n, char** arr) {
 
 void display_map(struct status* Game) {
     for (int i =0; i<Game->x_map; i++) {
-        move_cursor_to(i,0); // going to gui
+        move_cursor_to(i,0);
         for (int j=0; j<Game->y_map; j++) {
             fill_tile(i,j,Game);
         }
     }
+    print_level(Game->x_map, Game->level);
 }
 
 void move_me(int dx, int dy, struct status* Game) {

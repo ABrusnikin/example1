@@ -13,7 +13,7 @@
 
 #define WALL 88         // 'X'`
 #define BOX 42          // '*' 
-#define BOX_ON_POINT 79 // 'O; 
+#define BOX_ON_POINT 38 // '&; 
 #define PLAYER 64       // '@'
 #define POINT 46        // '.'
 #define EMPTY 32        // ' '

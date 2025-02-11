@@ -19,3 +19,5 @@ int get_pressed_key();
 void print_char(char c);
 void close_screen();
 void print(char* text);
+
+void print_level(int x, int lvl);
